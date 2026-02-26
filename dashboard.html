@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fortt Pro — Sistema de Assistência Técnica</title>
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+
+<div class="dashboard">
+
+  <aside class="sidebar">
+    <div class="logo">
+  <img src="./favicon.png" alt="AssistPro" class="logo-img">
+  <span class="logo-text">Fortt <b>PRO</b></span>
+</div>
+    <nav>
+      <ul>
+        <li class="active">Meu Equipamento</li>
+        <li class="muted">Histórico</li>
+        <li class="muted">Suporte</li>
+      </ul>
+    </nav>
+
+    <button id="logoutBtn" class="logout">Sair</button>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="topbar">
+      <div>
+        <span class="brand-name">Fortt <strong>Pro</strong></span>
+        <p class="subtitle">Acompanhe o andamento em tempo real</p>
+      </div>
+      <div class="who">
+        <div class="pill" id="userEmail"></div>
+      </div>
+    </header>
+
+    <section class="grid">
+
+      <div class="card">
+        <h3>Suas Ordens</h3>
+        <p class="hint">Clique numa OS para ver detalhes</p>
+
+        <div id="osList" class="list"></div>
+      </div>
+
+      <div class="card card-os">
+<div class="history">
+  <h3 class="history-title">Histórico</h3>
+  <div id="historyList" class="history-list"></div>
+</div>
+
+        <div class="os-header">
+          <div>
+            <h3 id="osTitle">Selecione uma OS</h3>
+            <p class="hint" id="osMeta">—</p>
+          </div>
+
+          <span class="status-badge" id="statusText">—</span>
+        </div>
+
+        <div class="os-info">
+          <div>
+            <label>Equipamento</label>
+            <p id="equipamento">—</p>
+          </div>
+          <div>
+            <label>Modelo</label>
+            <p id="modelo">—</p>
+          </div>
+          <div>
+            <label>Problema</label>
+            <p id="problema">—</p>
+          </div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="timeline">
+          <div class="step">Recebido</div>
+          <div class="step">Análise</div>
+          <div class="step">Aprovação</div>
+          <div class="step">Peça</div>
+          <div class="step">Manutenção</div>
+          <div class="step">Teste</div>
+          <div class="step">Finalizado</div>
+          <div class="step">Retirada</div>
+          <div class="step">Entregue</div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="dashboard.js"></script>
+</body>
+</html>
