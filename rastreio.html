@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fortt Pro | Rastreamento</title>
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="theme-color" content="#E64132">
+
+  <link rel="stylesheet" href="rastreio.css" />
+</head>
+<body>
+
+  <main class="wrap">
+
+    <header class="top">
+      <div class="brand">
+        <img src="logo-small.png" alt="Fortt Pro" class="logo-img" />
+        <div>
+          <div class="brand-name">Fortt <strong>Pro</strong></div>
+          <div class="sub">Acompanhe sua ordem de serviço em tempo real</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="card">
+      <h1>Consultar status</h1>
+      <p class="hint">
+        Digite o código recebido pela assistência, ou abra diretamente pelo link enviado.
+      </p>
+
+      <div class="row">
+        <input
+          id="tokenInput"
+          class="input"
+          type="text"
+          placeholder="Ex: OS-7F3K9X2QJ8"
+          autocomplete="off"
+        />
+        <button id="btnBuscar" class="btn" type="button">Buscar</button>
+      </div>
+
+      <p id="msg" class="msg"></p>
+    </section>
+
+    <section id="result" class="card hidden">
+      <div class="head">
+        <div>
+          <h2 id="osTitulo">Ordem —</h2>
+          <div id="osSub" class="muted">Código: —</div>
+        </div>
+
+        <span id="badgeStatus" class="badge">—</span>
+      </div>
+
+      <div class="grid">
+        <div class="info">
+          <label>Cliente</label>
+          <div id="clienteNome">—</div>
+        </div>
+
+        <div class="info">
+          <label>Equipamento</label>
+          <div id="equipamento">—</div>
+        </div>
+
+        <div class="info">
+          <label>Técnico responsável</label>
+          <div id="tecnico">—</div>
+        </div>
+
+        <div class="info">
+          <label>Última atualização</label>
+          <div id="updatedAt">—</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span class="muted">Progresso do atendimento</span>
+          <strong id="pct">0%</strong>
+        </div>
+
+        <div class="progress">
+          <div id="bar" class="bar"></div>
+        </div>
+      </div>
+
+      <div class="history">
+        <h3>Histórico da ordem</h3>
+        <div id="historyList" class="historyList"></div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="muted">© <span id="year"></span> Fortt Pro</div>
+    </footer>
+
+  </main>
+
+  <script type="module" src="rastreio.js"></script>
+</body>
+</html>

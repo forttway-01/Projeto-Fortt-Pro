@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fortt Pro — Sistema de Assistência Técnica</title>
-  <link rel="stylesheet" href="tecnico.css" />
+  <title>Fortt Pro | Painel do Técnico</title>
   <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="theme-color" content="#E64132">
+  <link rel="stylesheet" href="tecnico.css" />
 </head>
 <body>
 
@@ -13,21 +14,19 @@
 
   <header class="top">
     <div>
-     <div class="brand">
-  <img src="./favicon.png" alt="AssistPro" class="logo-img">
-  <span class="brand-name">Fortt <strong>Pro</strong></span>
-</div>
-      <p>Crie OS, atualize status e notifique o cliente por email.</p>
+      <h1>Fortt Pro — Painel do Técnico</h1>
+      <p>Crie OS, gere o link e notifique o cliente por email a cada atualização.</p>
     </div>
+
     <div class="actions">
       <span class="pill" id="techEmail">—</span>
       <button id="logoutBtn" type="button">Sair</button>
     </div>
   </header>
 
-  <!-- Barra de busca + filtros -->
   <section class="toolbar">
-    <input id="searchInput" placeholder="Buscar por OS, equipamento, modelo, UID..." />
+    <input id="searchInput" placeholder="Buscar por OS, cliente, email, telefone, equipamento, modelo ou token." />
+
     <select id="statusFilter">
       <option value="">Todos os status</option>
       <option>Recebido</option>
@@ -40,12 +39,12 @@
       <option>Pronto para retirada</option>
       <option>Entregue</option>
     </select>
+
     <div class="counter" id="counter">0 OS</div>
   </section>
 
   <section class="grid">
 
-    <!-- Form -->
     <div class="card">
       <h2>Criar / Atualizar OS</h2>
 
@@ -57,24 +56,23 @@
         <span class="badge" id="selectedStatus">—</span>
       </div>
 
-      <label>Email do Cliente</label>
-      <div class="row">
-        <input id="clienteEmail" placeholder="cliente@email.com" />
-        <button id="buscarClienteBtn" type="button" class="secondary small">Buscar</button>
-      </div>
-      <p class="mini" id="clienteEncontrado" style="display:none;"></p>
+      <label>Nome do Cliente</label>
+      <input id="clienteNome" placeholder="Ex: João da Silva" />
 
-      <label>UID do Cliente</label>
-      <input id="ownerUid" placeholder="UID do cliente (auto ao buscar por email)" />
+      <label>Email do Cliente</label>
+      <input id="clienteEmail" placeholder="Ex: cliente@email.com" />
+
+      <label>Telefone do Cliente</label>
+      <input id="clienteTelefone" placeholder="Ex: 83999999999" />
 
       <label>Tipo do Equipamento</label>
-      <input id="equipamentoTipo" placeholder="Notebook / PC / MacBook..." />
+      <input id="equipamentoTipo" placeholder="Notebook / PC / MacBook" />
 
       <label>Modelo</label>
       <input id="equipamentoModelo" placeholder="Ex: Dell Inspiron 15" />
 
       <label>Problema</label>
-      <input id="problema" placeholder="Ex: Não liga / tela preta..." />
+      <input id="problema" placeholder="Ex: Não liga / tela preta" />
 
       <label>Status (ao criar)</label>
       <select id="status">
@@ -91,10 +89,18 @@
 
       <button id="createBtn" type="button">Criar OS</button>
 
+      <label style="margin-top:14px;">Link para o Cliente</label>
+      <div class="row">
+        <input id="linkGerado" placeholder="O link aparecerá aqui depois que a OS for criada" readonly />
+        <button id="copyLinkBtn" type="button" class="secondary small">Copiar</button>
+      </div>
+
+      <p class="mini">Depois de criar a OS, copie o link e envie para o cliente.</p>
+
       <div class="divider"></div>
 
       <label>OS selecionada (docId)</label>
-      <input id="osDocId" placeholder="Clique numa OS na lista ao lado" />
+      <input id="osDocId" placeholder="Clique numa OS na lista ao lado" readonly />
 
       <label>Novo Status</label>
       <select id="statusUpdate">
@@ -110,14 +116,13 @@
       </select>
 
       <label>Observação (vai no histórico e no email)</label>
-      <input id="statusNote" placeholder="Ex: peça chegou / cliente aprovou orçamento..." />
+      <input id="statusNote" placeholder="Ex: peça chegou / cliente aprovou orçamento." />
 
       <button id="updateBtn" type="button" class="secondary">Atualizar Status + Enviar Email</button>
 
-      <p class="mini">Dica: clique numa OS na lista → o formulário preenche sozinho ✅</p>
+      <p class="mini">Dica: clique numa OS na lista ao lado para preencher esta parte automaticamente.</p>
     </div>
 
-    <!-- Lista -->
     <div class="card">
       <div class="list-head">
         <h2>Ordens (tempo real)</h2>
@@ -131,9 +136,8 @@
 
 </div>
 
-<!-- EmailJS (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script><script type="module" src="tecnico.js"></script>
-
-
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="module" src="tecnico.js"></script>
 </body>
 </html>

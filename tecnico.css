@@ -159,6 +159,35 @@ input, select{
   color:#fff;
   outline:none;
   transition:.18s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+input:focus, select:focus{
+  border-color: rgba(230,65,50,0.75);
+  box-shadow:0 0 0 4px rgba(230,65,50,0.12);
+}
+
+/* Corrige as opções internas do select */
+select{
+  background-color: rgba(20,20,22,0.95);
+  color: #ffffff;
+}
+
+select option{
+  background-color: #161616;
+  color: #ffffff;
+}
+
+select option:hover{
+  background-color: #E64132;
+  color: #ffffff;
+}
+
+select option:checked{
+  background-color: #E64132;
+  color: #ffffff;
 }
 
 input:focus, select:focus{
@@ -348,4 +377,17 @@ input:focus, select:focus{
 
 .brand-name strong{
   color: var(--ac-0);
+}
+#status,
+#statusUpdate,
+#statusFilter{
+  background-color: rgba(20,20,22,0.95);
+  color: #ffffff;
+}
+
+#status option,
+#statusUpdate option,
+#statusFilter option{
+  background: #161616;
+  color: #ffffff;
 }

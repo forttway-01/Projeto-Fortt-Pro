@@ -1,32 +1,26 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
 import {
   getFirestore,
-  doc,
-  getDocs,
-  where,
-  limit,
-  getDoc,
   collection,
   addDoc,
+  doc,
   updateDoc,
-  serverTimestamp,
   query,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  serverTimestamp,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// ======= EmailJS CONFIG (troque aqui) =======
-// ======= EmailJS CONFIG =======
-const EMAILJS_PUBLIC_KEY = "pKHqEcnhHeXgu3pHC";
-const EMAILJS_SERVICE_ID = "service_1en81so";
-const EMAILJS_TEMPLATE_ID = "template_kc2jufc";
-
-emailjs.init(EMAILJS_PUBLIC_KEY);
-// Inicializa EmailJS (objeto global vindo do CDN)
-emailjs.init(EMAILJS_PUBLIC_KEY);
-
-// ======= Firebase CONFIG (sua config) =======
+/* =========================
+   FIREBASE
+   ========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyB2FOENoyG2O8T4GhOQKwq64jkAh8CGZKU",
   authDomain: "forttway-b3d26.firebaseapp.com",
@@ -41,293 +35,470 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ===== UI =====
+/* =========================
+   EMAILJS
+   TROQUE ESTES 3 VALORES
+   ========================= */
+const EMAILJS_PUBLIC_KEY = "pKHqEcnhHeXgu3pHC";
+const EMAILJS_SERVICE_ID = "service_1en81so";
+const EMAILJS_TEMPLATE_ID = "template_kc2jufc";
+
+if (window.emailjs) {
+  window.emailjs.init({
+    publicKey: EMAILJS_PUBLIC_KEY
+  });
+}
+
+/* =========================
+   ELEMENTOS
+   ========================= */
 const techEmail = document.getElementById("techEmail");
 const logoutBtn = document.getElementById("logoutBtn");
 
-const clienteEmail = document.getElementById("clienteEmail");
-const buscarClienteBtn = document.getElementById("buscarClienteBtn");
-const clienteEncontrado = document.getElementById("clienteEncontrado");
-
-const ownerUid = document.getElementById("ownerUid");
-const equipamentoTipo = document.getElementById("equipamentoTipo");
-const equipamentoModelo = document.getElementById("equipamentoModelo");
-const problema = document.getElementById("problema");
-const status = document.getElementById("status");
-const createBtn = document.getElementById("createBtn");
-
-const osDocId = document.getElementById("osDocId");
-const statusUpdate = document.getElementById("statusUpdate");
-const statusNote = document.getElementById("statusNote");
-const updateBtn = document.getElementById("updateBtn");
-
-const allOs = document.getElementById("allOs");
 const searchInput = document.getElementById("searchInput");
 const statusFilter = document.getElementById("statusFilter");
 const counter = document.getElementById("counter");
 const lastUpdate = document.getElementById("lastUpdate");
+const allOs = document.getElementById("allOs");
 
 const selectedBox = document.getElementById("selectedBox");
 const selectedTitle = document.getElementById("selectedTitle");
 const selectedSub = document.getElementById("selectedSub");
 const selectedStatus = document.getElementById("selectedStatus");
 
-// Cache
-let osCache = [];
-let selectedId = null;
+const clienteNome = document.getElementById("clienteNome");
+const clienteEmail = document.getElementById("clienteEmail");
+const clienteTelefone = document.getElementById("clienteTelefone");
+const equipamentoTipo = document.getElementById("equipamentoTipo");
+const equipamentoModelo = document.getElementById("equipamentoModelo");
+const problema = document.getElementById("problema");
+const status = document.getElementById("status");
+const createBtn = document.getElementById("createBtn");
 
-function genOsNumber() {
-  return String(Math.floor(1000 + Math.random() * 9000));
+const linkGerado = document.getElementById("linkGerado");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+const osDocId = document.getElementById("osDocId");
+const statusUpdate = document.getElementById("statusUpdate");
+const statusNote = document.getElementById("statusNote");
+const updateBtn = document.getElementById("updateBtn");
+
+/* =========================
+   ESTADO
+   ========================= */
+let tecnicoLogado = null;
+let todasAsOS = [];
+
+/* =========================
+   STATUS E PROGRESSO
+   ========================= */
+const STATUS_LIST = [
+  "Recebido",
+  "Em análise",
+  "Aguardando aprovação",
+  "Aguardando peça",
+  "Em manutenção",
+  "Em teste",
+  "Finalizado",
+  "Pronto para retirada",
+  "Entregue"
+];
+
+function progressoPorStatus(statusStr) {
+  const idx = STATUS_LIST.indexOf(statusStr);
+  if (idx < 0) return 0;
+  return Math.round((idx / (STATUS_LIST.length - 1)) * 100);
 }
 
-async function registrarHistorico(osId, { status, note }) {
-  await addDoc(collection(db, "ordensServico", osId, "historico"), {
-    status: status || "—",
-    note: (note || "").trim(),
-    at: serverTimestamp()
-  });
-}
-
-async function buscarClientePorEmail(email) {
-  const emailLimpo = (email || "").trim().toLowerCase();
-  if (!emailLimpo) throw new Error("Digite o email do cliente.");
-
-  const q = query(
-    collection(db, "users"),
-    where("email", "==", emailLimpo),
-    limit(1)
-  );
-
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-
-  const docSnap = snap.docs[0];
-  return { uid: docSnap.id, ...docSnap.data() };
-}
-
-buscarClienteBtn.addEventListener("click", async () => {
-  try {
-    const result = await buscarClientePorEmail(clienteEmail.value);
-
-    clienteEncontrado.style.display = "block";
-
-    if (!result) {
-      clienteEncontrado.textContent = "Cliente não encontrado. Verifique o email.";
-      ownerUid.value = "";
-      return;
-    }
-
-    ownerUid.value = result.uid;
-    clienteEncontrado.textContent = `Encontrado: ${result.nome || "Cliente"} (${result.email}) • UID preenchido ✅`;
-  } catch (err) {
-    alert(err?.message || err);
+/* =========================
+   HELPERS
+   ========================= */
+function gerarTokenOS() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let token = "OS-";
+  for (let i = 0; i < 10; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)];
   }
-});
-
-// ===== Lista com filtro =====
-function matchesFilter(os) {
-  const text = (searchInput.value || "").trim().toLowerCase();
-  const st = (statusFilter.value || "").trim();
-
-  if (st && (os.status || "") !== st) return false;
-  if (!text) return true;
-
-  const hay = [
-    os.id,
-    os.osNumber,
-    os.ownerUid,
-    os.equipamentoTipo,
-    os.equipamentoModelo,
-    os.problema,
-    os.status
-  ].filter(Boolean).join(" ").toLowerCase();
-
-  return hay.includes(text);
+  return token;
 }
 
-function formatDate(ts) {
+function gerarNumeroOS() {
+  return "FP-" + Date.now().toString().slice(-6);
+}
+
+function formatarData(ts) {
   try {
-    return ts?.toDate ? ts.toDate().toLocaleString() : "—";
+    if (!ts) return "—";
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleString("pt-BR");
   } catch {
     return "—";
   }
 }
 
-function renderList() {
-  const filtered = osCache.filter(matchesFilter);
-  counter.textContent = `${filtered.length} OS`;
-  allOs.innerHTML = "";
+function limparFormularioCriacao() {
+  clienteNome.value = "";
+  clienteEmail.value = "";
+  clienteTelefone.value = "";
+  equipamentoTipo.value = "";
+  equipamentoModelo.value = "";
+  problema.value = "";
+  status.value = "Recebido";
+}
 
-  if (filtered.length === 0) {
-    allOs.innerHTML = `<div class="item"><div class="sub">Nada encontrado com os filtros atuais.</div></div>`;
+function preencherSelecionada(d) {
+  selectedBox.style.display = "flex";
+  selectedTitle.textContent = `#${d.osNumber || d.id}`;
+  selectedSub.textContent = `${d.clienteNome || "Sem nome"} • ${d.equipamentoTipo || "Equipamento"} ${d.equipamentoModelo || ""}`;
+  selectedStatus.textContent = d.status || "—";
+
+  osDocId.value = d.id || "";
+  statusUpdate.value = d.status || "Recebido";
+
+  clienteNome.value = d.clienteNome || "";
+  clienteEmail.value = d.clienteEmail || "";
+  clienteTelefone.value = d.clienteTelefone || "";
+  equipamentoTipo.value = d.equipamentoTipo || "";
+  equipamentoModelo.value = d.equipamentoModelo || "";
+  problema.value = d.problema || "";
+
+  if (d.publicToken) {
+    linkGerado.value = `${window.location.origin}/rastreio.html?token=${d.publicToken}`;
+  } else {
+    linkGerado.value = "";
+  }
+}
+
+function aplicarFiltros() {
+  const termo = (searchInput.value || "").toLowerCase().trim();
+  const filtroStatus = statusFilter.value;
+
+  const filtradas = todasAsOS.filter((d) => {
+    const texto = `
+      ${d.osNumber || ""}
+      ${d.clienteNome || ""}
+      ${d.clienteEmail || ""}
+      ${d.clienteTelefone || ""}
+      ${d.equipamentoTipo || ""}
+      ${d.equipamentoModelo || ""}
+      ${d.problema || ""}
+      ${d.publicToken || ""}
+    `.toLowerCase();
+
+    const bateTexto = !termo || texto.includes(termo);
+    const bateStatus = !filtroStatus || d.status === filtroStatus;
+
+    return bateTexto && bateStatus;
+  });
+
+  renderLista(filtradas);
+}
+
+function renderLista(lista) {
+  allOs.innerHTML = "";
+  counter.textContent = `${lista.length} OS`;
+
+  if (!lista.length) {
+    allOs.innerHTML = `
+      <div class="item">
+        <div class="sub">Nenhuma OS encontrada.</div>
+      </div>
+    `;
     return;
   }
 
-  filtered.forEach((os) => {
+  lista.forEach((d) => {
     const div = document.createElement("div");
-    div.className = "item" + (os.id === selectedId ? " active" : "");
+    div.className = "item";
 
     div.innerHTML = `
       <div class="top">
-        <div class="id">#${os.osNumber || os.id}</div>
-        <div class="st">${os.status || "—"}</div>
+        <div class="id">#${d.osNumber || d.id}</div>
+        <div class="st">${d.status || "—"}</div>
       </div>
-      <div class="sub">${os.equipamentoTipo || "Equipamento"} • ${os.equipamentoModelo || ""}</div>
-      <div class="meta">Atualizado: ${formatDate(os.updatedAt)} • ownerUid: ${os.ownerUid || "—"}</div>
+      <div class="sub">${d.clienteNome || "Sem nome"} • ${d.equipamentoTipo || "Equipamento"} ${d.equipamentoModelo || ""}</div>
+      <div class="meta">${d.publicToken || "Sem token"} • ${formatarData(d.updatedAt)}</div>
     `;
 
     div.addEventListener("click", () => {
-      selectOS(os);
-      renderList();
+      document.querySelectorAll(".item").forEach((el) => el.classList.remove("active"));
+      div.classList.add("active");
+      preencherSelecionada(d);
     });
 
     allOs.appendChild(div);
   });
+
+  lastUpdate.textContent = `Atualizado em ${new Date().toLocaleTimeString("pt-BR")}`;
 }
 
-function selectOS(os) {
-  selectedId = os.id;
+/* =========================
+   ENVIAR EMAIL
+   ========================= */
+async function enviarEmailAtualizacao(osData, novoStatus, observacao, link) {
+  if (!osData.clienteEmail) return;
 
-  osDocId.value = os.id;
-  ownerUid.value = os.ownerUid || "";
-  equipamentoTipo.value = os.equipamentoTipo || "";
-  equipamentoModelo.value = os.equipamentoModelo || "";
-  problema.value = os.problema || "";
-  statusUpdate.value = os.status || "Recebido";
+  if (
+    !EMAILJS_PUBLIC_KEY ||
+    EMAILJS_PUBLIC_KEY === "COLE_SUA_PUBLIC_KEY_AQUI" ||
+    !EMAILJS_SERVICE_ID ||
+    EMAILJS_SERVICE_ID === "COLE_SEU_SERVICE_ID_AQUI" ||
+    !EMAILJS_TEMPLATE_ID ||
+    EMAILJS_TEMPLATE_ID === "COLE_SEU_TEMPLATE_ID_AQUI"
+  ) {
+    console.warn("EmailJS não configurado ainda.");
+    return;
+  }
 
-  selectedBox.style.display = "flex";
-  selectedTitle.textContent = `OS #${os.osNumber || os.id}`;
-  selectedSub.textContent = `${os.equipamentoTipo || "Equipamento"} • ${os.equipamentoModelo || ""}`;
-  selectedStatus.textContent = os.status || "—";
+  const numeroOS = osData.osNumber || osData.id || "Sem número";
+  const observacaoFinal = observacao?.trim()
+    ? observacao.trim()
+    : "Sua ordem de serviço recebeu uma nova atualização.";
+
+  const equipamentoFinal =
+    `${osData.equipamentoTipo || ""} ${osData.equipamentoModelo || ""}`.trim() || "Equipamento não informado";
+
+  const params = {
+    to_email: osData.clienteEmail,
+    cliente_nome: osData.clienteNome || "Cliente",
+    os_numero: numeroOS,
+    status: novoStatus,
+    observacao: observacaoFinal,
+    equipamento: equipamentoFinal,
+    link_rastreio: link,
+    tecnico_email: tecnicoLogado?.email || ""
+  };
+
+  console.log("Enviando email com os dados:", params);
+
+  await window.emailjs.send(
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    params
+  );
 }
 
-searchInput.addEventListener("input", renderList);
-statusFilter.addEventListener("change", renderList);
+/* =========================
+   CRIAR OS
+   ========================= */
+async function criarOS() {
+  const nome = clienteNome.value.trim();
+  const email = clienteEmail.value.trim();
+  const telefone = clienteTelefone.value.trim();
+  const tipo = equipamentoTipo.value.trim();
+  const modelo = equipamentoModelo.value.trim();
+  const defeito = problema.value.trim();
+  const statusInicial = status.value;
+  const token = gerarTokenOS();
+  const numero = gerarNumeroOS();
+  const progressoInicial = progressoPorStatus(statusInicial);
 
-// ===== Auth + role + realtime list =====
+  if (!nome) {
+    alert("Preencha o nome do cliente.");
+    clienteNome.focus();
+    return;
+  }
+
+  if (!email) {
+    alert("Preencha o email do cliente.");
+    clienteEmail.focus();
+    return;
+  }
+
+  if (!tipo) {
+    alert("Preencha o tipo do equipamento.");
+    equipamentoTipo.focus();
+    return;
+  }
+
+  if (!modelo) {
+    alert("Preencha o modelo.");
+    equipamentoModelo.focus();
+    return;
+  }
+
+  if (!defeito) {
+    alert("Preencha o problema.");
+    problema.focus();
+    return;
+  }
+
+  createBtn.disabled = true;
+  createBtn.textContent = "Criando...";
+
+  try {
+    const osRef = await addDoc(collection(db, "ordensServico"), {
+      osNumber: numero,
+      clienteNome: nome,
+      clienteEmail: email,
+      clienteTelefone: telefone,
+      equipamentoTipo: tipo,
+      equipamentoModelo: modelo,
+      problema: defeito,
+      status: statusInicial,
+      progresso: progressoInicial,
+      tecnicoEmail: tecnicoLogado?.email || "",
+      publicToken: token,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    await addDoc(collection(db, "ordensServico", osRef.id, "historico"), {
+      status: statusInicial,
+      note: "Equipamento recebido e OS criada no sistema.",
+      at: serverTimestamp()
+    });
+
+    const link = `${window.location.origin}/rastreio.html?token=${token}`;
+    linkGerado.value = link;
+
+    osDocId.value = osRef.id;
+    statusUpdate.value = statusInicial;
+
+    alert("OS criada com sucesso! Agora copie o link e envie para o cliente.");
+    limparFormularioCriacao();
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao criar a OS. Veja o console.");
+  } finally {
+    createBtn.disabled = false;
+    createBtn.textContent = "Criar OS";
+  }
+}
+
+/* =========================
+   ATUALIZAR STATUS
+   ========================= */
+async function atualizarStatus() {
+  const id = osDocId.value.trim();
+  const novoStatus = statusUpdate.value;
+  const observacao = statusNote.value.trim();
+  const novoProgresso = progressoPorStatus(novoStatus);
+
+  if (!id) {
+    alert("Selecione uma OS na lista ou crie uma nova primeiro.");
+    return;
+  }
+
+  updateBtn.disabled = true;
+  updateBtn.textContent = "Atualizando...";
+
+  try {
+    const ref = doc(db, "ordensServico", id);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      alert("OS não encontrada.");
+      return;
+    }
+
+    const osData = {
+      id: snap.id,
+      ...snap.data()
+    };
+
+    await updateDoc(ref, {
+      status: novoStatus,
+      progresso: novoProgresso,
+      updatedAt: serverTimestamp()
+    });
+
+    await addDoc(collection(db, "ordensServico", id, "historico"), {
+      status: novoStatus,
+      note: observacao || "Status atualizado pelo técnico.",
+      at: serverTimestamp()
+    });
+
+    const link = `${window.location.origin}/rastreio.html?token=${osData.publicToken}`;
+
+    try {
+      await enviarEmailAtualizacao(osData, novoStatus, observacao, link);
+    } catch (emailError) {
+      console.error("Erro ao enviar email:", emailError);
+      alert("Status atualizado, mas o email não foi enviado. Verifique a configuração do EmailJS.");
+    }
+
+    statusNote.value = "";
+    alert("Status atualizado com sucesso!");
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao atualizar status. Veja o console.");
+  } finally {
+    updateBtn.disabled = false;
+    updateBtn.textContent = "Atualizar Status + Enviar Email";
+  }
+}
+
+/* =========================
+   COPIAR LINK
+   ========================= */
+async function copiarLink() {
+  const valor = linkGerado.value.trim();
+
+  if (!valor) {
+    alert("Ainda não existe link gerado.");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(valor);
+    alert("Link copiado!");
+  } catch (error) {
+    console.error(error);
+    linkGerado.select();
+    document.execCommand("copy");
+    alert("Link copiado!");
+  }
+}
+
+/* =========================
+   LISTA EM TEMPO REAL
+   ========================= */
+function iniciarListaTempoReal() {
+  const q = query(collection(db, "ordensServico"), orderBy("updatedAt", "desc"));
+
+  onSnapshot(
+    q,
+    (snap) => {
+      todasAsOS = snap.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+
+      aplicarFiltros();
+    },
+    (error) => {
+      console.error(error);
+      alert("Erro ao carregar as OS em tempo real.");
+    }
+  );
+}
+
+/* =========================
+   AUTH
+   ========================= */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
     return;
   }
 
-  techEmail.textContent = user.email;
-
-  const uSnap = await getDoc(doc(db, "users", user.uid));
-  const role = uSnap.exists() ? uSnap.data().role : "cliente";
-
-  if (role !== "tecnico") {
-    alert("Acesso negado: esta página é apenas para técnico.");
-    window.location.href = "dashboard.html";
-    return;
-  }
-
-  const qOs = query(collection(db, "ordensServico"), orderBy("updatedAt", "desc"));
-
-  onSnapshot(
-    qOs,
-    (snap) => {
-      osCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      lastUpdate.textContent = `Atualizado agora • ${new Date().toLocaleTimeString()}`;
-
-      if (selectedId) {
-        const current = osCache.find((x) => x.id === selectedId);
-        if (current) selectOS(current);
-      }
-
-      renderList();
-    },
-    (err) => {
-      console.error("Erro ao listar OS:", err);
-      alert("Erro ao listar OS. Veja o Console (F12).");
-    }
-  );
+  tecnicoLogado = user;
+  techEmail.textContent = user.email || "Técnico";
+  iniciarListaTempoReal();
 });
+
+/* =========================
+   EVENTOS
+   ========================= */
+createBtn.addEventListener("click", criarOS);
+updateBtn.addEventListener("click", atualizarStatus);
+copyLinkBtn.addEventListener("click", copiarLink);
+
+searchInput.addEventListener("input", aplicarFiltros);
+statusFilter.addEventListener("change", aplicarFiltros);
 
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "index.html";
-});
-
-// ===== Criar OS + histórico inicial =====
-createBtn.addEventListener("click", async () => {
-  if (!ownerUid.value.trim()) {
-    alert("Busque o cliente por email ou preencha o UID.");
-    return;
-  }
-
-  try {
-    const newDoc = await addDoc(collection(db, "ordensServico"), {
-      osNumber: genOsNumber(),
-      ownerUid: ownerUid.value.trim(),
-      equipamentoTipo: equipamentoTipo.value.trim() || "Notebook",
-      equipamentoModelo: equipamentoModelo.value.trim() || "—",
-      problema: problema.value.trim() || "—",
-      status: status.value,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-
-    await registrarHistorico(newDoc.id, { status: status.value, note: "OS criada" });
-
-    alert("OS criada! docId: " + newDoc.id);
-    osDocId.value = newDoc.id;
-  } catch (err) {
-    alert("Erro ao criar OS: " + (err?.message || err));
-  }
-});
-
-// ===== Atualizar status + histórico + EMAIL =====
-updateBtn.addEventListener("click", async () => {
-  const id = osDocId.value.trim();
-  if (!id) {
-    alert("Selecione uma OS na lista.");
-    return;
-  }
-
-  const noteText = (statusNote.value || "").trim();
-
-  try {
-    // 1) Atualiza OS
-    await updateDoc(doc(db, "ordensServico", id), {
-      status: statusUpdate.value,
-      updatedAt: serverTimestamp()
-    });
-
-    // 2) Histórico
-    await registrarHistorico(id, {
-      status: statusUpdate.value,
-      note: noteText
-    });
-
-    // 3) Pega dados da OS e do cliente
-    const osSnap = await getDoc(doc(db, "ordensServico", id));
-    const osData = osSnap.data();
-
-    if (!osData?.ownerUid) throw new Error("OS sem ownerUid.");
-
-    const userSnap = await getDoc(doc(db, "users", osData.ownerUid));
-    const userData = userSnap.data();
-
-    if (!userData?.email) throw new Error("Cliente sem email no Firestore (users/{uid}).");
-
-    // 4) Envia email via EmailJS
-    const templateParams = {
-      to_email: userData.email,
-      client_name: userData.nome || "Cliente",
-      os_number: osData.osNumber || id,
-      equipamento: `${osData.equipamentoTipo || "Equipamento"} ${osData.equipamentoModelo || ""}`.trim(),
-      status: statusUpdate.value,
-      note: noteText
-    };
-
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-
-    statusNote.value = "";
-    alert("Status atualizado e email enviado ✅");
-
-  } catch (err) {
-    console.error(err);
-    alert("Erro: " + (err?.message || err));
-  }
 });

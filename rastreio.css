@@ -1,0 +1,423 @@
+:root{
+  --bg-0:#0E0E0F;
+  --bg-1:#141416;
+  --card: rgba(10,10,10,0.62);
+  --bd: rgba(255,255,255,0.10);
+
+  --tx-0:#FFFFFF;
+  --tx-1: rgba(255,255,255,0.78);
+
+  --ac-0:#E64132;
+  --ac-1:#C83426;
+
+  --ok:#25D366;
+  --warn:#F4A300;
+  --bad:#FF3B3B;
+
+  --shadow: 0 20px 60px rgba(0,0,0,0.55);
+  --glow: 0 0 40px rgba(230,65,50,0.12);
+
+  --r-lg:22px;
+  --r-md:14px;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  height:100%;
+}
+
+html{
+  overflow-x:hidden;
+}
+
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--tx-0);
+  position:relative;
+  overflow-x:hidden;
+  background:#0E0E0F;
+}
+
+/* =========================
+   Background Parallax
+   ========================= */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  transform: scale(1.05);
+
+  background-image:
+    linear-gradient(rgba(8,8,8,0.70), rgba(8,8,8,0.78)),
+    radial-gradient(circle at top left, rgba(230,65,50,0.18), transparent 35%),
+    url("./bg-rastreio.jpg");
+
+  background-position:
+    center center,
+    center center,
+    center center;
+
+  background-size:
+    auto,
+    auto,
+    cover;
+
+  background-repeat:
+    no-repeat,
+    no-repeat,
+    no-repeat;
+
+  background-attachment:
+    fixed,
+    fixed,
+    fixed;
+}
+
+/* Camada extra de profundidade */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.35)),
+    radial-gradient(circle at bottom right, rgba(230,65,50,0.08), transparent 30%);
+  z-index:-1;
+  pointer-events:none;
+}
+
+.wrap{
+  width:min(960px, 92vw);
+  margin:0 auto;
+  padding:26px 0 40px;
+}
+
+/* =========================
+   Topo
+   ========================= */
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo-img{
+  height:80px;
+  width:auto;
+  object-fit:contain;
+}
+
+.brand-name{
+  font-weight:950;
+  letter-spacing:.2px;
+  font-size:1.2rem;
+}
+
+.brand-name strong{
+  color:var(--ac-0);
+}
+
+.sub{
+  color:var(--tx-1);
+  font-size:.92rem;
+  margin-top:2px;
+}
+
+/* =========================
+   Cards
+   ========================= */
+.card{
+  background:var(--card);
+  border:1px solid var(--bd);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow), var(--glow);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  padding:20px;
+  margin-top:14px;
+  animation:fadeUp 0.6s ease;
+}
+
+h1{
+  margin:0 0 6px;
+  font-size:1.45rem;
+  font-weight:950;
+}
+
+.hint{
+  margin:0 0 14px;
+  color:var(--tx-1);
+  line-height:1.45;
+}
+
+/* =========================
+   Busca
+   ========================= */
+.row{
+  display:flex;
+  gap:10px;
+}
+
+.input{
+  flex:1;
+  height:50px;
+  border-radius:var(--r-md);
+  border:1px solid rgba(255,255,255,0.14);
+  background:rgba(255,255,255,0.05);
+  color:var(--tx-0);
+  padding:0 14px;
+  outline:none;
+  transition:.18s ease;
+}
+
+.input:focus{
+  border-color:rgba(230,65,50,0.75);
+  box-shadow:0 0 0 4px rgba(230,65,50,0.12);
+}
+
+.btn{
+  height:50px;
+  padding:0 18px;
+  border-radius:var(--r-md);
+  border:1px solid rgba(230,65,50,0.65);
+  background:linear-gradient(135deg, var(--ac-0), var(--ac-1));
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 14px 28px rgba(230,65,50,0.24);
+}
+
+.msg{
+  margin:10px 0 0;
+  color:var(--tx-1);
+}
+
+.msg.bad{
+  color:var(--bad);
+}
+
+.msg.ok{
+  color:var(--ok);
+}
+
+.hidden{
+  display:none;
+}
+
+/* =========================
+   Cabeçalho do resultado
+   ========================= */
+.head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+h2{
+  margin:0;
+  font-size:1.15rem;
+  font-weight:950;
+}
+
+.muted{
+  color:var(--tx-1);
+  font-size:.92rem;
+}
+
+.badge{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid rgba(230,65,50,0.35);
+  background:rgba(230,65,50,0.14);
+  font-weight:900;
+  font-size:.9rem;
+  white-space:nowrap;
+}
+
+/* =========================
+   Infos
+   ========================= */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:12px;
+}
+
+.info{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:16px;
+  padding:14px;
+}
+
+.info label{
+  display:block;
+  color:rgba(255,255,255,0.62);
+  font-size:.85rem;
+  margin-bottom:6px;
+}
+
+.info div{
+  font-weight:750;
+  color:rgba(255,255,255,0.95);
+}
+
+/* =========================
+   Progresso
+   ========================= */
+.progress-wrap{
+  margin-top:16px;
+}
+
+.progress-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.progress{
+  height:12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.04);
+  overflow:hidden;
+}
+
+.bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, rgba(230,65,50,1), rgba(200,52,38,0.92));
+  transition:width 1s cubic-bezier(.22,.61,.36,1);
+  box-shadow:0 0 18px rgba(230,65,50,0.28);
+}
+
+/* =========================
+   Histórico
+   ========================= */
+.history{
+  margin-top:18px;
+}
+
+.history h3{
+  margin:0 0 10px;
+  font-size:1rem;
+  font-weight:950;
+}
+
+.historyList{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.hItem{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:12px;
+  animation:fadeUp .5s ease both;
+}
+
+.hRow{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+.hSt{
+  font-weight:950;
+  color:var(--ac-0);
+}
+
+.hDt{
+  color:rgba(255,255,255,0.65);
+  font-size:.9rem;
+  white-space:nowrap;
+}
+
+.hNote{
+  color:rgba(255,255,255,0.80);
+  font-size:.92rem;
+}
+
+/* =========================
+   Rodapé
+   ========================= */
+.foot{
+  margin-top:18px;
+  text-align:center;
+  padding-bottom:20px;
+}
+
+/* =========================
+   Animações
+   ========================= */
+@keyframes fadeUp {
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* =========================
+   Responsivo
+   ========================= */
+@media (max-width:780px){
+  .row{
+    flex-direction:column;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .card{
+    padding:16px;
+  }
+
+  .logo-img{
+    height:28px;
+  }
+
+  .brand-name{
+    font-size:1.05rem;
+  }
+}
+
+/* =========================
+   Fallback mobile
+   ========================= */
+@media (max-width:900px){
+  body::before{
+    background-attachment:
+      scroll,
+      scroll,
+      scroll;
+  }
+}
