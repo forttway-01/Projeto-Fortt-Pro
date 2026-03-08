@@ -391,3 +391,29 @@ input:focus, select:focus{
   background: #161616;
   color: #ffffff;
 }
+/* =========================
+   Botão WhatsApp Premium
+   ========================= */
+
+#whatsBtn{
+  border: 1px solid rgba(37, 211, 102, 0.45);
+  background: linear-gradient(135deg, #25D366, #1ebe5d);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(37, 211, 102, 0.18);
+}
+
+#whatsBtn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(37, 211, 102, 0.28);
+  filter: brightness(1.03);
+}
+
+#whatsBtn:active{
+  transform: translateY(0);
+}
+
+/* se quiser o botão ocupar largura total da linha */
+.row #whatsBtn{
+  width: 100%;
+}

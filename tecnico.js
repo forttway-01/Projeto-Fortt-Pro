@@ -20,7 +20,7 @@ import {
 
 /* =========================
    FIREBASE
-   ========================= */
+========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyB2FOENoyG2O8T4GhOQKwq64jkAh8CGZKU",
   authDomain: "forttway-b3d26.firebaseapp.com",
@@ -37,8 +37,7 @@ const db = getFirestore(app);
 
 /* =========================
    EMAILJS
-   TROQUE ESTES 3 VALORES
-   ========================= */
+========================= */
 const EMAILJS_PUBLIC_KEY = "pKHqEcnhHeXgu3pHC";
 const EMAILJS_SERVICE_ID = "service_1en81so";
 const EMAILJS_TEMPLATE_ID = "template_kc2jufc";
@@ -51,7 +50,7 @@ if (window.emailjs) {
 
 /* =========================
    ELEMENTOS
-   ========================= */
+========================= */
 const techEmail = document.getElementById("techEmail");
 const logoutBtn = document.getElementById("logoutBtn");
 
@@ -77,6 +76,7 @@ const createBtn = document.getElementById("createBtn");
 
 const linkGerado = document.getElementById("linkGerado");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
+const whatsBtn = document.getElementById("whatsBtn");
 
 const osDocId = document.getElementById("osDocId");
 const statusUpdate = document.getElementById("statusUpdate");
@@ -85,13 +85,13 @@ const updateBtn = document.getElementById("updateBtn");
 
 /* =========================
    ESTADO
-   ========================= */
+========================= */
 let tecnicoLogado = null;
 let todasAsOS = [];
 
 /* =========================
    STATUS E PROGRESSO
-   ========================= */
+========================= */
 const STATUS_LIST = [
   "Recebido",
   "Em análise",
@@ -105,20 +105,32 @@ const STATUS_LIST = [
 ];
 
 function progressoPorStatus(statusStr) {
-  const idx = STATUS_LIST.indexOf(statusStr);
-  if (idx < 0) return 0;
-  return Math.round((idx / (STATUS_LIST.length - 1)) * 100);
+  const mapa = {
+    "Recebido": 5,
+    "Em análise": 15,
+    "Aguardando aprovação": 25,
+    "Aguardando peça": 40,
+    "Em manutenção": 60,
+    "Em teste": 80,
+    "Finalizado": 95,
+    "Pronto para retirada": 100,
+    "Entregue": 100
+  };
+
+  return mapa[statusStr] ?? 0;
 }
 
 /* =========================
    HELPERS
-   ========================= */
+========================= */
 function gerarTokenOS() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let token = "OS-";
+
   for (let i = 0; i < 10; i++) {
     token += chars[Math.floor(Math.random() * chars.length)];
   }
+
   return token;
 }
 
@@ -233,43 +245,23 @@ function renderLista(lista) {
 }
 
 /* =========================
-   ENVIAR EMAIL
-   ========================= */
+   EMAIL
+========================= */
 async function enviarEmailAtualizacao(osData, novoStatus, observacao, link) {
   if (!osData.clienteEmail) return;
-
-  if (
-    !EMAILJS_PUBLIC_KEY ||
-    EMAILJS_PUBLIC_KEY === "COLE_SUA_PUBLIC_KEY_AQUI" ||
-    !EMAILJS_SERVICE_ID ||
-    EMAILJS_SERVICE_ID === "COLE_SEU_SERVICE_ID_AQUI" ||
-    !EMAILJS_TEMPLATE_ID ||
-    EMAILJS_TEMPLATE_ID === "COLE_SEU_TEMPLATE_ID_AQUI"
-  ) {
-    console.warn("EmailJS não configurado ainda.");
-    return;
-  }
-
-  const numeroOS = osData.osNumber || osData.id || "Sem número";
-  const observacaoFinal = observacao?.trim()
-    ? observacao.trim()
-    : "Sua ordem de serviço recebeu uma nova atualização.";
-
-  const equipamentoFinal =
-    `${osData.equipamentoTipo || ""} ${osData.equipamentoModelo || ""}`.trim() || "Equipamento não informado";
 
   const params = {
     to_email: osData.clienteEmail,
     cliente_nome: osData.clienteNome || "Cliente",
-    os_numero: numeroOS,
+    os_numero: osData.osNumber || osData.id || "Sem número",
     status: novoStatus,
-    observacao: observacaoFinal,
-    equipamento: equipamentoFinal,
+    observacao: observacao?.trim()
+      ? observacao.trim()
+      : "Sua ordem de serviço recebeu uma nova atualização.",
+    equipamento: `${osData.equipamentoTipo || ""} ${osData.equipamentoModelo || ""}`.trim(),
     link_rastreio: link,
     tecnico_email: tecnicoLogado?.email || ""
   };
-
-  console.log("Enviando email com os dados:", params);
 
   await window.emailjs.send(
     EMAILJS_SERVICE_ID,
@@ -279,8 +271,78 @@ async function enviarEmailAtualizacao(osData, novoStatus, observacao, link) {
 }
 
 /* =========================
+   WHATSAPP
+========================= */
+function somenteNumeros(texto) {
+  return (texto || "").replace(/\D/g, "");
+}
+
+function montarMensagemWhatsApp(nome, numeroOS, link) {
+  const tecnico = "Luciano Fortunato";
+
+  const mensagem = `Olá, ${nome || "cliente"}.
+
+Aqui é ${tecnico}, técnico responsável da Forttway Soluções em TI.
+
+Sua ordem de serviço ${numeroOS || ""} foi registrada/atualizada com sucesso em nosso sistema.
+
+Para acompanhar o andamento do seu equipamento em tempo real, acesse o link abaixo:
+${link}
+
+Permanecemos à disposição para qualquer dúvida.
+
+Atenciosamente,
+Forttway Soluções em TI`;
+
+  return encodeURIComponent(mensagem);
+}
+
+function enviarWhatsApp() {
+  const telefone = somenteNumeros(clienteTelefone.value);
+  const nome = clienteNome.value.trim();
+  const link = linkGerado.value.trim();
+
+  let numeroOS = "";
+
+  if (selectedTitle.textContent) {
+    numeroOS = selectedTitle.textContent.replace("#", "").trim();
+  }
+
+  if (!numeroOS && osDocId.value.trim()) {
+    numeroOS = osDocId.value.trim();
+  }
+
+  if (!nome) {
+    alert("Preencha ou selecione o nome do cliente.");
+    clienteNome.focus();
+    return;
+  }
+
+  if (!telefone) {
+    alert("Preencha o telefone do cliente.");
+    clienteTelefone.focus();
+    return;
+  }
+
+  if (!link) {
+    alert("Crie uma OS ou selecione uma OS que já tenha link gerado.");
+    return;
+  }
+
+  let telefoneFinal = telefone;
+  if (!telefoneFinal.startsWith("55")) {
+    telefoneFinal = `55${telefoneFinal}`;
+  }
+
+  const mensagem = montarMensagemWhatsApp(nome, numeroOS, link);
+  const url = `https://wa.me/${telefoneFinal}?text=${mensagem}`;
+
+  window.open(url, "_blank");
+}
+
+/* =========================
    CRIAR OS
-   ========================= */
+========================= */
 async function criarOS() {
   const nome = clienteNome.value.trim();
   const email = clienteEmail.value.trim();
@@ -302,6 +364,12 @@ async function criarOS() {
   if (!email) {
     alert("Preencha o email do cliente.");
     clienteEmail.focus();
+    return;
+  }
+
+  if (!telefone) {
+    alert("Preencha o telefone do cliente.");
+    clienteTelefone.focus();
     return;
   }
 
@@ -355,8 +423,12 @@ async function criarOS() {
     osDocId.value = osRef.id;
     statusUpdate.value = statusInicial;
 
-    alert("OS criada com sucesso! Agora copie o link e envie para o cliente.");
-    limparFormularioCriacao();
+    selectedBox.style.display = "flex";
+    selectedTitle.textContent = `#${numero}`;
+    selectedSub.textContent = `${nome} • ${tipo} ${modelo}`;
+    selectedStatus.textContent = statusInicial;
+
+    alert("OS criada com sucesso! Agora você pode copiar o link ou enviar no WhatsApp.");
   } catch (error) {
     console.error(error);
     alert("Erro ao criar a OS. Veja o console.");
@@ -368,7 +440,7 @@ async function criarOS() {
 
 /* =========================
    ATUALIZAR STATUS
-   ========================= */
+========================= */
 async function atualizarStatus() {
   const id = osDocId.value.trim();
   const novoStatus = statusUpdate.value;
@@ -431,7 +503,7 @@ async function atualizarStatus() {
 
 /* =========================
    COPIAR LINK
-   ========================= */
+========================= */
 async function copiarLink() {
   const valor = linkGerado.value.trim();
 
@@ -452,8 +524,8 @@ async function copiarLink() {
 }
 
 /* =========================
-   LISTA EM TEMPO REAL
-   ========================= */
+   LISTA TEMPO REAL
+========================= */
 function iniciarListaTempoReal() {
   const q = query(collection(db, "ordensServico"), orderBy("updatedAt", "desc"));
 
@@ -476,7 +548,7 @@ function iniciarListaTempoReal() {
 
 /* =========================
    AUTH
-   ========================= */
+========================= */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
@@ -490,10 +562,11 @@ onAuthStateChanged(auth, async (user) => {
 
 /* =========================
    EVENTOS
-   ========================= */
+========================= */
 createBtn.addEventListener("click", criarOS);
 updateBtn.addEventListener("click", atualizarStatus);
 copyLinkBtn.addEventListener("click", copiarLink);
+whatsBtn.addEventListener("click", enviarWhatsApp);
 
 searchInput.addEventListener("input", aplicarFiltros);
 statusFilter.addEventListener("change", aplicarFiltros);

@@ -15,7 +15,7 @@
   <header class="top">
     <div>
       <h1>Fortt Pro — Painel do Técnico</h1>
-      <p>Crie OS, gere o link e notifique o cliente por email a cada atualização.</p>
+      <p>Crie OS, gere o link e notifique o cliente por email e WhatsApp.</p>
     </div>
 
     <div class="actions">
@@ -95,7 +95,11 @@
         <button id="copyLinkBtn" type="button" class="secondary small">Copiar</button>
       </div>
 
-      <p class="mini">Depois de criar a OS, copie o link e envie para o cliente.</p>
+      <div class="row" style="margin-top:10px;">
+        <button id="whatsBtn" type="button" class="secondary small">Enviar no WhatsApp</button>
+      </div>
+
+      <p class="mini">Depois de criar a OS, você pode copiar o link ou abrir o WhatsApp já com a mensagem pronta.</p>
 
       <div class="divider"></div>
 
@@ -136,7 +140,6 @@
 
 </div>
 
-<!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module" src="tecnico.js"></script>
 </body>
